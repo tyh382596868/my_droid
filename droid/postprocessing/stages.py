@@ -49,7 +49,6 @@ def run_indexing(
 ) -> None:
     """Index data by iterating through each "success/ | failure/" --> <DAY>/ --> <TIMESTAMP>/ (specified trajectory)."""
     progress = tqdm(desc="[*] Stage 1 =>> Indexing")
-
     paths_to_index = parse_data_directory(data_dir, lab_agnostic=lab_agnostic, process_failures=process_failures)
 
     for outcome_dir, outcome in paths_to_index:

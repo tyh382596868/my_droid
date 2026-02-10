@@ -1,4 +1,4 @@
-version: "3"
+
 
 services: 
   laptop_setup:
@@ -31,6 +31,7 @@ services:
         ROBOT_IP: ${ROBOT_IP}
     devices:
       - "/dev:/dev"
+      - "/run/udev:/run/udev"
     runtime: nvidia
     privileged: true
     network_mode: "host"

@@ -3,6 +3,7 @@ from droid.robot_env import RobotEnv
 from droid.trajectory_utils.misc import collect_trajectory
 
 # Make the robot env
+breakpoint()
 env = RobotEnv()
 controller = VRPolicy()
 

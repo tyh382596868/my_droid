@@ -3,7 +3,7 @@ import random
 from droid.data_loading.trajectory_sampler import crawler
 from droid.trajectory_utils.misc import visualize_trajectory
 
-logdir = "/home/sasha/DROID/data/success/2023-04-20"
+logdir = "/app/data/success/2026-01-09/Fri_Jan__9_06:16:56_2026"
 
 all_folderpaths = crawler(logdir)
 random.shuffle(all_folderpaths)

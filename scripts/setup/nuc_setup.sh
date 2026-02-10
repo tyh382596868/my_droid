@@ -79,7 +79,7 @@ rm temp_env_vars.sh
 if [ "$ROBOT_TYPE" == "panda" ]; then
         export LIBFRANKA_VERSION=0.9.0
 else
-        export LIBFRANKA_VERSION=0.10.0
+        export LIBFRANKA_VERSION=0.15.0
 fi
 
 # build control server container 

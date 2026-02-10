@@ -44,7 +44,7 @@ REGISTERED_ALIASES: Dict[str, Tuple[str, str]] = {
 
     # Note: Add duplicates/typos below (follow format)!
     **{
-        "First Last": ("Lab Name", "First Last"),
+        "Ethan Foster": ("Lab Name", "First Last"),
     }
 }
 # fmt: on
@@ -76,6 +76,7 @@ class DROIDConversionConfig:
 
 @pyrallis.wrap()
 def postprocess(cfg: DROIDConversionConfig) -> None:
+    # breakpoint()
     print(f"[*] Starting Data Processing & Upload for Lab `{cfg.lab}`")
 
     # Initialize Cache Data Structure --> Load Uploaded/Processed List from `cache_dir` (if exists)
