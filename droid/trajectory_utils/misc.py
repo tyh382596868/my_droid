@@ -309,7 +309,7 @@ def replay_trajectory(
         action = np.concatenate([arm_action, [gripper_action]])
         controller_info = timestep["observation"]["controller_info"]
         movement_enabled = controller_info.get("movement_enabled", True)
-
+        # breakpoint()
         # Follow Trajectory #
         if movement_enabled:
             env.step(action)

@@ -1,5 +1,16 @@
+aaa
+cache
 config
 data
+data_test
 docs
 droid
+my-scripts
+plots
+results
+results_gr00t_2026_02_06_cube
+results_gr00t_2026_02_07
+results_gr00t_2026_02_07_spoon
 scripts
+trash
+tyh

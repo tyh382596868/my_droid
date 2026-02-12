@@ -3,15 +3,15 @@
   "start_date": "2023-01-01",
   "totals": {
     "scanned": {
-      "success": 8,
+      "success": 3,
       "failure": 0
     },
     "indexed": {
-      "success": 8,
+      "success": 3,
       "failure": 0
     },
     "processed": {
-      "success": 0,
+      "success": 3,
       "failure": 0
     },
     "uploaded": {
@@ -25,32 +25,26 @@
   },
   "scanned_paths": {
     "success": {
-      "success/2026-01-09/Fri_Jan__9_06:16:56_2026": true,
-      "success/2026-02-10/Tue_Feb_10_12:49:49_2026": true,
-      "success/2026-02-10/Tue_Feb_10_12:51:38_2026": true,
-      "success/2026-02-10/Tue_Feb_10_12:54:00_2026": true,
-      "success/2026-02-10/Tue_Feb_10_12:54:56_2026": true,
-      "success/2026-02-10/Tue_Feb_10_12:49:59_2026": true,
-      "success/2026-02-10/Tue_Feb_10_12:52:41_2026": true,
-      "success/2026-02-10/Tue_Feb_10_12:50:49_2026": true
+      "success/2026-02-11/Wed_Feb_11_09:17:06_2026": true,
+      "success/2026-02-11/Wed_Feb_11_09:16:00_2026": true,
+      "success/2026-02-11/Wed_Feb_11_09:18:01_2026": true
     },
     "failure": {}
   },
   "indexed_uuids": {
     "success": {
-      "CLVR+4b1a56cc+2026-01-09-06h-16m-56s": "success/2026-01-09/Fri_Jan__9_06:16:56_2026",
-      "CLVR+4b1a56cc+2026-02-10-12h-49m-49s": "success/2026-02-10/Tue_Feb_10_12:49:49_2026",
-      "CLVR+4b1a56cc+2026-02-10-12h-51m-38s": "success/2026-02-10/Tue_Feb_10_12:51:38_2026",
-      "CLVR+4b1a56cc+2026-02-10-12h-54m-00s": "success/2026-02-10/Tue_Feb_10_12:54:00_2026",
-      "CLVR+4b1a56cc+2026-02-10-12h-54m-56s": "success/2026-02-10/Tue_Feb_10_12:54:56_2026",
-      "CLVR+4b1a56cc+2026-02-10-12h-49m-59s": "success/2026-02-10/Tue_Feb_10_12:49:59_2026",
-      "CLVR+4b1a56cc+2026-02-10-12h-52m-41s": "success/2026-02-10/Tue_Feb_10_12:52:41_2026",
-      "CLVR+4b1a56cc+2026-02-10-12h-50m-49s": "success/2026-02-10/Tue_Feb_10_12:50:49_2026"
+      "CLVR+4b1a56cc+2026-02-11-09h-17m-06s": "success/2026-02-11/Wed_Feb_11_09:17:06_2026",
+      "CLVR+4b1a56cc+2026-02-11-09h-16m-00s": "success/2026-02-11/Wed_Feb_11_09:16:00_2026",
+      "CLVR+4b1a56cc+2026-02-11-09h-18m-01s": "success/2026-02-11/Wed_Feb_11_09:18:01_2026"
     },
     "failure": {}
   },
   "processed_uuids": {
-    "success": {},
+    "success": {
+      "CLVR+4b1a56cc+2026-02-11-09h-17m-06s": "success/2026-02-11/Wed_Feb_11_09:17:06_2026",
+      "CLVR+4b1a56cc+2026-02-11-09h-16m-00s": "success/2026-02-11/Wed_Feb_11_09:16:00_2026",
+      "CLVR+4b1a56cc+2026-02-11-09h-18m-01s": "success/2026-02-11/Wed_Feb_11_09:18:01_2026"
+    },
     "failure": {}
   },
   "uploaded_uuids": {

@@ -8,104 +8,18 @@ import os
 import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-
+import json
 import cv2
 import pyzed.sl as sl
 from tqdm import tqdm
 
-
-# def export_mp4(svo_file: Path, mp4_dir: Path, stereo_view: str = "left", show_progress: bool = False) -> bool:
-#     """Reads an SVO file, dumping the export MP4 to the desired path; supports ZED SDK 3.8.*, 4.0.*, and 5.*"""
-#     breakpoint()
-#     mp4_out = mp4_dir / f"{svo_file.stem}.mp4"
-#     sdk_version = sl.Camera().get_sdk_version()
-#     major_version = int(sdk_version.split('.')[0])
-    
-#     # 1. 修改版本检查逻辑：支持 3.8, 4.x 和 5.x
-#     if not (sdk_version.startswith("3.8") or major_version >= 4):
-#         raise ValueError(f"Function `export_mp4` detected SDK {sdk_version}, but only supports 3.8, 4.0 or 5.x!")
-    
-#     # 5.x 的 API 结构与 4.x 保持一致，所以这里我们把 4 和 5 都视为 use_sdk_above_4
-#     use_sdk_above_4 = major_version >= 4
-
-#     # Configure PyZED
-#     initial_parameters = sl.InitParameters()
-#     initial_parameters.set_from_svo_file(str(svo_file))
-#     initial_parameters.svo_real_time_mode = False
-#     initial_parameters.coordinate_units = sl.UNIT.MILLIMETER
-#     initial_parameters.camera_image_flip = sl.FLIP_MODE.OFF
-
-#     # Create ZED Camera Object
-#     zed = sl.Camera()
-#     err = zed.open(initial_parameters)
-#     if err != sl.ERROR_CODE.SUCCESS:
-#         zed.close()
-#         return False
-
-#     # 2. 适配 5.x 的 API 调用（与 4.x 共享逻辑）
-#     if use_sdk_above_4:
-#         # SDK 4.x/5.x 使用 camera_configuration 访问
-#         fps = zed.get_camera_information().camera_configuration.fps
-#         resolution = zed.get_camera_information().camera_configuration.resolution
-#         width, height = resolution.width, resolution.height
-#     else:
-#         # SDK 3.x 原始访问方式
-#         fps = zed.get_camera_information().camera_fps
-#         resolution = zed.get_camera_information().camera_resolution
-#         width, height = resolution.width, resolution.height
-
-#     # Create ZED Image Containers
-#     assert stereo_view in {"left", "right"}, f"Invalid View to Export `{stereo_view}`!"
-#     img_container = sl.Mat()
-
-#     # Create a VideoWriter
-#     video_writer = cv2.VideoWriter(
-#         str(mp4_out),
-#         cv2.VideoWriter_fourcc(*"mp4v"),
-#         fps,
-#         (width, height),
-#     )
-#     if not video_writer.isOpened():
-#         print(f"Error Opening CV2 Video Writer; check path `{mp4_out}`")
-#         zed.close()
-#         return False
-
-#     # SVO Export
-#     n_frames, rt_parameters = zed.get_svo_number_of_frames(), sl.RuntimeParameters()
-#     if show_progress:
-#         pbar = tqdm(total=n_frames, desc="     => Exporting SVO Frames", leave=False)
-
-#     # 3. 读取逻辑适配
-#     while True:
-#         grabbed = zed.grab(rt_parameters)
-
-#         # 5.x 同样支持 END_OF_SVOFILE_REACHED 错误码
-#         if (grabbed == sl.ERROR_CODE.SUCCESS) or (use_sdk_above_4 and (grabbed == sl.ERROR_CODE.END_OF_SVOFILE_REACHED)):
-#             svo_position = zed.get_svo_position()
-#             zed.retrieve_image(img_container, {"left": sl.VIEW.LEFT, "right": sl.VIEW.RIGHT}[stereo_view])
-
-#             # 转换为 RGB 并写入
-#             rgb = cv2.cvtColor(img_container.get_data(), cv2.COLOR_RGBA2RGB)
-#             video_writer.write(rgb)
-
-#             if show_progress:
-#                 pbar.update()
-
-#             # 结束判断
-#             if (svo_position >= (n_frames - 1)) or (use_sdk_above_4 and (grabbed == sl.ERROR_CODE.END_OF_SVOFILE_REACHED)):
-#                 break
-
-#     # Cleanup
-#     video_writer.release()
-#     zed.close()
-#     if show_progress:
-#         pbar.close()
-
-#     return True
-
 def export_mp4(svo_file: Path, mp4_dir: Path, stereo_view: str = "left", show_progress: bool = False) -> bool:
     """Reads an SVO file, dumping the export MP4 to the desired path; supports ZED SDK 3.8.* and 4.0.* ONLY."""
     mp4_out = mp4_dir / f"{svo_file.stem}.mp4"
+    
+    # [修改 2] 定义时间戳文件的输出路径
+    timestamp_out = mp4_dir / f"{svo_file.stem}_timestamps.json"
+
     sdk_version, use_sdk_4 = sl.Camera().get_sdk_version(), None
     if not (sdk_version.startswith("4.0") or sdk_version.startswith("3.8")):
         raise ValueError("Function `export_mp4` only supports ZED SDK 3.8 OR 4.0; if you see this, contact Sidd!")
@@ -157,6 +71,9 @@ def export_mp4(svo_file: Path, mp4_dir: Path, stereo_view: str = "left", show_pr
     if show_progress:
         pbar = tqdm(total=n_frames, desc="     => Exporting SVO Frames", leave=False)
 
+    # [修改 3] 初始化时间戳列表
+    timestamps = []
+
     # Read & Transcode all Frames
     while True:
         grabbed = zed.grab(rt_parameters)
@@ -164,6 +81,11 @@ def export_mp4(svo_file: Path, mp4_dir: Path, stereo_view: str = "left", show_pr
         # [NOTE SDK SEMANTICS] --> ZED SDK 4.0 introduces `sl.ERROR_CODE.END_OF_SVOFILE_REACHED`
         if (grabbed == sl.ERROR_CODE.SUCCESS) or (use_sdk_4 and (grabbed == sl.ERROR_CODE.END_OF_SVOFILE_REACHED)):
             svo_position = zed.get_svo_position()
+            
+            # [修改 4] 获取当前帧的时间戳 (单位：毫秒) 并存入列表
+            ts = zed.get_timestamp(sl.TIME_REFERENCE.IMAGE).get_milliseconds()
+            timestamps.append(ts)
+
             zed.retrieve_image(img_container, {"left": sl.VIEW.LEFT, "right": sl.VIEW.RIGHT}[stereo_view])
 
             # Copy image data into VideoWrite after converting to RGB
@@ -184,7 +106,95 @@ def export_mp4(svo_file: Path, mp4_dir: Path, stereo_view: str = "left", show_pr
     if show_progress:
         pbar.close()
 
+    # [修改 5] 将时间戳列表写入 JSON 文件
+    with open(timestamp_out, "w") as f:
+        json.dump(timestamps, f)
+
     return True
+
+
+# def export_mp4(svo_file: Path, mp4_dir: Path, stereo_view: str = "left", show_progress: bool = False) -> bool:
+#     """Reads an SVO file, dumping the export MP4 to the desired path; supports ZED SDK 3.8.* and 4.0.* ONLY."""
+#     mp4_out = mp4_dir / f"{svo_file.stem}.mp4"
+#     sdk_version, use_sdk_4 = sl.Camera().get_sdk_version(), None
+#     if not (sdk_version.startswith("4.0") or sdk_version.startswith("3.8")):
+#         raise ValueError("Function `export_mp4` only supports ZED SDK 3.8 OR 4.0; if you see this, contact Sidd!")
+#     else:
+#         use_sdk_4 = sdk_version.startswith("4.0")
+
+#     # Configure PyZED --> set mostly from SVO Path, don't convert in realtime!
+#     initial_parameters = sl.InitParameters()
+#     initial_parameters.set_from_svo_file(str(svo_file))
+#     initial_parameters.svo_real_time_mode = False
+#     initial_parameters.coordinate_units = sl.UNIT.MILLIMETER
+#     initial_parameters.camera_image_flip = sl.FLIP_MODE.OFF
+
+#     # Create ZED Camera Object & Open SVO File
+#     zed = sl.Camera()
+#     err = zed.open(initial_parameters)
+#     if err != sl.ERROR_CODE.SUCCESS:
+#         zed.close()
+#         return False
+
+#     # [NOTE SDK SEMANTICS] --> Get Image Size & FPS
+#     if use_sdk_4:
+#         fps = zed.get_camera_information().camera_configuration.fps
+#         resolution = zed.get_camera_information().camera_configuration.resolution
+#         width, height = resolution.width, resolution.height
+#     else:
+#         fps = zed.get_camera_information().camera_fps
+#         resolution = zed.get_camera_information().camera_resolution
+#         width, height = resolution.width, resolution.height
+
+#     # Create ZED Image Containers
+#     assert stereo_view in {"left", "right"}, f"Invalid View to Export `{stereo_view}`!"
+#     img_container = sl.Mat()
+
+#     # Create a VideoWriter with the MP4V Codec
+#     video_writer = cv2.VideoWriter(
+#         str(mp4_out),
+#         cv2.VideoWriter_fourcc(*"mp4v"),
+#         fps,
+#         (width, height),
+#     )
+#     if not video_writer.isOpened():
+#         print(f"Error Opening CV2 Video Writer; check the MP4 path `{mp4_out}` and permissions!")
+#         zed.close()
+#         return False
+
+#     # SVO Export
+#     n_frames, rt_parameters = zed.get_svo_number_of_frames(), sl.RuntimeParameters()
+#     if show_progress:
+#         pbar = tqdm(total=n_frames, desc="     => Exporting SVO Frames", leave=False)
+
+#     # Read & Transcode all Frames
+#     while True:
+#         grabbed = zed.grab(rt_parameters)
+
+#         # [NOTE SDK SEMANTICS] --> ZED SDK 4.0 introduces `sl.ERROR_CODE.END_OF_SVOFILE_REACHED`
+#         if (grabbed == sl.ERROR_CODE.SUCCESS) or (use_sdk_4 and (grabbed == sl.ERROR_CODE.END_OF_SVOFILE_REACHED)):
+#             svo_position = zed.get_svo_position()
+#             zed.retrieve_image(img_container, {"left": sl.VIEW.LEFT, "right": sl.VIEW.RIGHT}[stereo_view])
+
+#             # Copy image data into VideoWrite after converting to RGB
+#             rgb = cv2.cvtColor(img_container.get_data(), cv2.COLOR_RGBA2RGB)
+#             video_writer.write(rgb)
+
+#             # Update Progress
+#             if show_progress:
+#                 pbar.update()
+
+#             # [NOTE SDK SEMANTICS] --> Check if we've reached the end of the video
+#             if (svo_position >= (n_frames - 1)) or (use_sdk_4 and (grabbed == sl.ERROR_CODE.END_OF_SVOFILE_REACHED)):
+#                 break
+
+#     # Cleanup & Return
+#     video_writer.release()
+#     zed.close()
+#     if show_progress:
+#         pbar.close()
+
+#     return True
 
 
 def convert_mp4s(
@@ -198,6 +208,7 @@ def convert_mp4s(
     do_fuse: bool = False,
 ) -> Tuple[bool, Optional[Dict[str, str]]]:
     """Convert each `serial.svo` to a valid MP4 file, updating the `data_record` path entries in-place."""
+
     svo_path, mp4_path = demo_dir / "recordings" / "SVO", demo_dir / "recordings" / "MP4"
     os.makedirs(mp4_path, exist_ok=True)
     for svo_file in svo_path.iterdir():
@@ -239,3 +250,9 @@ def convert_mp4s(
         )
 
     return True, record_paths
+
+
+if __name__=="__main__":
+    svo_path = "/app/31780776.svo2"
+    mp4_path = "/app/data/success/2026-02-10/Tue_Feb_10_12:51:38_2026/recordings/MP4"
+    export_mp4(Path(svo_path), Path(mp4_path))

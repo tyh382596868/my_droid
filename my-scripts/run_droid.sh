@@ -1,7 +1,7 @@
 
 # activate conda
 source ~/miniconda3/bin/activate
-conda activate robot
+conda activate robot37
 
 # pi 系列
 python3 scripts/main_droid.py --remote_host=localhost --remote_port=8000 --external_camera="left" --action_space="joint_velocity"
