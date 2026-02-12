@@ -1,7 +1,7 @@
 from droid.robot_env import RobotEnv
 from droid.trajectory_utils.misc import replay_trajectory
 
-trajectory_folderpath = "/home/sasha/DROID/data/success/2023-02-16/Thu_Feb_16_16:27:00_2023"
+trajectory_folderpath = "/app/data/success/2026-02-10/Tue_Feb_10_12:51:38_2026"
 action_space = "joint_position"
 
 # Make the robot env

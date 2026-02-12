@@ -40,7 +40,7 @@ def validate_day_dir(day_dir: Path) -> bool:
 
 def validate_svo_existence(trajectory_dir: Path) -> bool:
     svo_path = trajectory_dir / "recordings" / "SVO"
-    if svo_path.exists() and (len([p for p in svo_path.iterdir() if p.name.endswith(".svo2")]) == 3):
+    if svo_path.exists() and (len([p for p in svo_path.iterdir() if p.name.endswith(".svo")]) == 3):
         return True
 
     # Check Common Failure Mode --> files at `trajectory_dir / recordings / *.svo`

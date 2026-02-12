@@ -114,8 +114,8 @@ def resize_and_encode(image, size):
 
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string("input_path", "franka_data/success", "Path to input directory")
-flags.DEFINE_string("output_path", "franka_data/tfrecords", "Path to output directory")
+flags.DEFINE_string("input_path", "/app/data/success", "Path to input directory")
+flags.DEFINE_string("output_path", "/app/data/tfrecords", "Path to output directory")
 flags.DEFINE_bool("overwrite", False, "Overwrite existing tfrecords")
 flags.DEFINE_float("train_fraction", 0.8, "Fraction of data to use for training")
 flags.DEFINE_integer("shard_size", 200, "Maximum number of trajectories per tfrecord")
@@ -146,6 +146,7 @@ def create_tfrecord(paths, output_path, tqdm_func, global_tqdm):
 
     for path in paths:
         h5_filepath = os.path.join(path, "trajectory.h5")
+        # recording_folderpath = os.path.join(path, "recordings", "SVO")
         recording_folderpath = os.path.join(path, "recordings", "MP4")
 
         # this is really inefficient, should really do frame skipping inside `load_trajectory` but I didn't want to mess

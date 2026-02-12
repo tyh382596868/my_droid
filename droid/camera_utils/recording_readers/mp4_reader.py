@@ -23,6 +23,7 @@ class MP4Reader:
         timestamp_filepath = filepath[:-4] + "_timestamps.json"
         if not os.path.isfile(timestamp_filepath):
             self._recording_timestamps = []
+        
         with open(timestamp_filepath, "r") as jsonFile:
             self._recording_timestamps = json.load(jsonFile)
 
@@ -82,7 +83,7 @@ class MP4Reader:
             received_time = self._recording_timestamps[self._index]
         except IndexError:
             received_time = None
-
+        # print(f"received_time: {received_time}, correct_timestamp: {correct_timestamp}")
         self._index += 1
         if not success:
             return None

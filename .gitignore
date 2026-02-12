@@ -5,12 +5,15 @@ trash/
 
 # 忽略临时代码和测试目录
 aaa/
-
+cache/
+.venv/
 # 忽略所有结果目录（使用通配符匹配 gr00t 系列）
 results/
 results_gr00t_*/
-
+plots/
 # 忽略其他系统生成的冗余文件
 core.*
 *.whl
 *.png
+*.run
+*.pyc
