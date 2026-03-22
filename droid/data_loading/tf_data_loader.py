@@ -103,7 +103,7 @@ if __name__ == "__main__":
     import tqdm
 
     dataset = get_tf_dataloader(
-        "/tmp/franka_tfrecord_test/train",
+        "/app/data/tfrecords/train",
         batch_size=8,
         shuffle_buffer_size=1,
     )
@@ -111,6 +111,7 @@ if __name__ == "__main__":
         for batch in dataset.as_numpy_iterator():
             for key, value in batch.items():
                 pbar.write(f"{key}: {value.shape}")
+            breakpoint()
             images = batch["observation/image/20521388_right"]
             pbar.update(len(images))
             # for image in images:

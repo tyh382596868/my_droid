@@ -17,3 +17,7 @@ core.*
 *.png
 *.run
 *.pyc
+*.run
+*.zip
+*.json
+droid.egg-info/

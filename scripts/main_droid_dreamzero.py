@@ -10,7 +10,9 @@ import time
 from moviepy.editor import ImageSequenceClip
 import numpy as np
 from openpi_client import image_tools
+# from openpi_client import websocket_client_policy_dreamzero as websocket_client_policy
 from openpi_client import websocket_client_policy
+
 import pandas as pd
 from PIL import Image
 from droid.robot_env import RobotEnv
@@ -154,6 +156,10 @@ def main(args: Args):
                     save_to_disk=t_step == 0,
                 )
 
+
+
+
+
                 video.append(curr_obs[f"{args.external_camera}_image"])
 
                 # Send websocket request to policy server if it's time to predict a new chunk
@@ -179,11 +185,34 @@ def main(args: Args):
                     # print(curr_obs[f"{args.external_camera}_image"].shape)
                     # print(curr_obs[f"{args.external_camera}_image"].shape)
                     # breakpoint()
+                    # request_data = {
+                    #     "endpoint": "infer",                 # <-- 新增：告诉服务端这是推理请求
+                    #     "session_id": "droid_session_01",    # <-- 新增：满足服务端 needs_session_id=True 的要求
+                    #     "observation/exterior_image_1_left": image_tools.resize_with_pad(
+                    #         curr_obs[f"{args.external_camera}_image"], IMAGE_RES[0], IMAGE_RES[1]
+                    #     ),
+                    #     "observation/wrist_image_left": image_tools.resize_with_pad(curr_obs["wrist_image"], IMAGE_RES[0], IMAGE_RES[1]),
+                    #     f"observation/{args.observation_space}": curr_obs[args.observation_space],
+                    #     "observation/gripper_position": curr_obs["gripper_position"],
+                    #     "prompt": instruction,
+                    # }
+
                     request_data = {
-                        "observation/exterior_image_1_left": image_tools.resize_with_pad(
-                            curr_obs[f"{args.external_camera}_image"], IMAGE_RES[0], IMAGE_RES[1]
+                        "endpoint": "infer",
+                        "session_id": "droid_session_01",
+                        
+                        # --- 修改部分：同时发送左、右两个外部视角的图像 ---
+                        "observation/exterior_image_0_left": image_tools.resize_with_pad(
+                            curr_obs["left_image"], IMAGE_RES[0], IMAGE_RES[1]
                         ),
-                        "observation/wrist_image_left": image_tools.resize_with_pad(curr_obs["wrist_image"], IMAGE_RES[0], IMAGE_RES[1]),
+                        "observation/exterior_image_1_left": image_tools.resize_with_pad(
+                            curr_obs["right_image"], IMAGE_RES[0], IMAGE_RES[1]
+                        ),
+                        # ------------------------------------------------
+                        
+                        "observation/wrist_image_left": image_tools.resize_with_pad(
+                            curr_obs["wrist_image"], IMAGE_RES[0], IMAGE_RES[1]
+                        ),
                         f"observation/{args.observation_space}": curr_obs[args.observation_space],
                         "observation/gripper_position": curr_obs["gripper_position"],
                         "prompt": instruction,
@@ -193,12 +222,14 @@ def main(args: Args):
                     # Ctrl+C will be handled after the server call is complete
                     with prevent_keyboard_interrupt():
                         # this returns action chunk [10, 8] of 10 joint velocity actions (7) + gripper position (1)
-                        ourput = policy_client.infer(request_data)
-                        pred_action_chunk = ourput["actions"]
+                        # pred_action_chunk = policy_client.infer(request_data)["actions"]
+                        result = policy_client.infer(request_data)
+                        # print(result)
+                        # print(type(result))
+                        # print(result.shape)
+                        pred_action_chunk = result
 
-                        
-
-                    print(pred_action_chunk.shape)
+                    
                     # breakpoint()
                     # assert pred_action_chunk.shape == (15, 8)
                     if "joint" in args.action_space:
@@ -240,11 +271,11 @@ def main(args: Args):
                 break
 
 
-        # # ================= 新增：循环结束后，将数据写入 JSON 文件 =================
-        # output_filename = "check_actions.json"
-        # with open(output_filename, "w", encoding="utf-8") as f:
-        #     json.dump(saved_actions, f, indent=4)
-        # print(f"\n✅ 成功将 {len(saved_actions)} 步正确的 action 保存至 {output_filename}")
+        # ================= 新增：循环结束后，将数据写入 JSON 文件 =================
+        output_filename = "check_actions.json"
+        with open(output_filename, "w", encoding="utf-8") as f:
+            json.dump(saved_actions, f, indent=4)
+        print(f"\n✅ 成功将 {len(saved_actions)} 步正确的 action 保存至 {output_filename}")
 
         # plot_action_dimensions(saved_actions)
 
