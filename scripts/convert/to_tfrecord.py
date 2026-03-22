@@ -203,7 +203,7 @@ def main(_):
     tf.io.gfile.makedirs(os.path.join(FLAGS.output_path, "test"))
     train_output_paths = [os.path.join(FLAGS.output_path, "train", f"{i}.tfrecord") for i in range(len(train_shards))]
     test_output_paths = [os.path.join(FLAGS.output_path, "test", f"{i}.tfrecord") for i in range(len(test_shards))]
-
+    breakpoint()
     # create tasks (see tqdm_multiprocess documenation)
     tasks = [(create_tfrecord, (train_shards[i], train_output_paths[i])) for i in range(len(train_shards))] + [
         (create_tfrecord, (test_shards[i], test_output_paths[i])) for i in range(len(test_shards))
@@ -217,3 +217,5 @@ def main(_):
 
 if __name__ == "__main__":
     app.run(main)
+
+    # create_tfrecord("/app/data/success/2026-02-11/Wed_Feb_11_09:18:01_2026", "/app/data/tfrecords/train/0.tfrecord")

@@ -45,7 +45,7 @@ REGISTERED_ALIASES: Dict[str, Tuple[str, str]] = {
 
     # Note: Add duplicates/typos below (follow format)!
     **{
-        "Firstt Last": ("Lab Name", "First Last"),
+        "Ethan Foster": ("Lab Name", "First Last"),
     }
 }
 # fmt: on
@@ -60,7 +60,7 @@ class DROIDUploadConfig:
     # Stage Handling
     do_index: bool = True                           # Whether to run an initial indexing pass prior to processing stage
     do_process: bool = True                         # Whether to run processing (can skip if just want to upload)
-    do_upload: bool = True                          # Whether to run uploading to S3
+    do_upload: bool = False                          # Whether to run uploading to S3
 
     # Important :: Only update once you're sure *all* demonstrations prior to this date have been uploaded!
     #   > If not running low on disk, leave alone!

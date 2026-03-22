@@ -272,6 +272,12 @@ def calibrate_camera(
     return True
 
 
+
+import json
+import numpy as np
+import time
+# 假设 TrajectoryReader 已经在其他地方导入
+
 def replay_trajectory(
     env, filepath=None, assert_replayable_keys=["cartesian_position", "gripper_position", "joint_positions"]
 ):
@@ -282,23 +288,21 @@ def replay_trajectory(
     traj_reader = TrajectoryReader(filepath, read_images=False)
     horizon = traj_reader.length()
 
+    # ================= 新增：初始化用于保存 action 的列表 =================
+    saved_actions = []
+
     for i in range(horizon):
         # Get HDF5 Data #
         timestep = traj_reader.read_timestep()
-
+        # breakpoint()
         # Move To Initial Position #
         if i == 0:
             init_joint_position = timestep["observation"]["robot_state"]["joint_positions"]
             init_gripper_position = timestep["observation"]["robot_state"]["gripper_position"]
             action = np.concatenate([init_joint_position, [init_gripper_position]])
+            print(action)
             env.update_robot(action, action_space="joint_position", blocking=True)
-
-        # TODO: Assert Replayability #
-        # robot_state = env.get_state()[0]
-        # for key in assert_replayable_keys:
-        # 	desired = timestep['observation']['robot_state'][key]
-        # 	current = robot_state[key]
-        # 	assert np.allclose(desired, current)
+            # breakpoint()
 
         # Regularize Control Frequency #
         time.sleep(1 / env.control_hz)
@@ -309,10 +313,72 @@ def replay_trajectory(
         action = np.concatenate([arm_action, [gripper_action]])
         controller_info = timestep["observation"]["controller_info"]
         movement_enabled = controller_info.get("movement_enabled", True)
-        # breakpoint()
+        
+        if "velocity" in env.action_space:
+            # clip all dimensions of action to [-1, 1]
+            action = np.clip(action, -1, 1)        
+            
+        # ================= 新增：将 numpy array 转为 list 并追加到保存列表中 =================
+        saved_actions.append(action.tolist())
+        
         # Follow Trajectory #
+        # print(f"Step {i}: {action}")
         if movement_enabled:
             env.step(action)
+
+    # ================= 新增：循环结束后，将数据写入 JSON 文件 =================
+    output_filename = "ground_truth_actions.json"
+    with open(output_filename, "w", encoding="utf-8") as f:
+        json.dump(saved_actions, f, indent=4)
+    print(f"\n✅ 成功将 {len(saved_actions)} 步正确的 action 保存至 {output_filename}")
+
+
+# def replay_trajectory(
+#     env, filepath=None, assert_replayable_keys=["cartesian_position", "gripper_position", "joint_positions"]
+# ):
+#     print("WARNING: STATE 'CLOSENESS' FOR REPLAYABILITY HAS NOT BEEN CALIBRATED")
+#     gripper_key = "gripper_velocity" if "velocity" in env.action_space else "gripper_position"
+
+#     # Prepare Trajectory Reader #
+#     traj_reader = TrajectoryReader(filepath, read_images=False)
+#     horizon = traj_reader.length()
+
+#     for i in range(horizon):
+#         # Get HDF5 Data #
+#         timestep = traj_reader.read_timestep()
+
+#         # Move To Initial Position #
+#         if i == 0:
+#             init_joint_position = timestep["observation"]["robot_state"]["joint_positions"]
+#             init_gripper_position = timestep["observation"]["robot_state"]["gripper_position"]
+#             action = np.concatenate([init_joint_position, [init_gripper_position]])
+#             env.update_robot(action, action_space="joint_position", blocking=True)
+
+#         # TODO: Assert Replayability #
+#         # robot_state = env.get_state()[0]
+#         # for key in assert_replayable_keys:
+#         # 	desired = timestep['observation']['robot_state'][key]
+#         # 	current = robot_state[key]
+#         # 	assert np.allclose(desired, current)
+
+#         # Regularize Control Frequency #
+#         time.sleep(1 / env.control_hz)
+#         # breakpoint()
+
+#         # Get Action In Desired Action Space #
+#         arm_action = timestep["action"][env.action_space]
+#         gripper_action = timestep["action"][gripper_key]
+#         action = np.concatenate([arm_action, [gripper_action]])
+#         controller_info = timestep["observation"]["controller_info"]
+#         movement_enabled = controller_info.get("movement_enabled", True)
+#         # breakpoint()
+#         if "velocity" in env.action_space:
+#             # clip all dimensions of action to [-1, 1]
+#             action = np.clip(action, -1, 1)        
+#         # Follow Trajectory #
+#         print(action)
+#         if movement_enabled:
+#             env.step(action)
 
 
 def load_trajectory(

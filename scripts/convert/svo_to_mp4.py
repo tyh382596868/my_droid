@@ -52,7 +52,7 @@ REGISTERED_ALIASES: Dict[str, Tuple[str, str]] = {
 @dataclass
 class DROIDConversionConfig:
     # fmt: off
-    lab: str                                        # Lab ID (all uppercase) -- e.g., "CLVR", "ILIAD", "REAL"
+    lab: str = "CLVR"                                        # Lab ID (all uppercase) -- e.g., "CLVR", "ILIAD", "REAL"
     data_dir: Path = Path("data")                   # Path to top-level directory, if lab_agnostic=False it should contain "success"/"failure" directories
     lab_agnostic: bool = True                       # Determines whether to only convert your lab's data or all data
 
